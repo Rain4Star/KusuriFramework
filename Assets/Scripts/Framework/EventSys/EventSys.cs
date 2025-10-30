@@ -1,247 +1,98 @@
-using Kusuri;
-using Newtonsoft.Json;
+ï»¿using Kusuri;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Threading;
-using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace KEventSys
 {
-	public class EventParam { }
 	public delegate void EventFunc(params object[] args);
-	// public delegate void EventFuncGeneric<T>(T param) where T : EventParam;		// ÔİÊ±²»²ÉÓÃ·ºĞÍÊÂ¼şÁË
+	
 
-
+	/// <summary>
+	/// éçº¿ç¨‹å®‰å…¨çš„äº‹ä»¶ç³»ç»Ÿ
+	/// </summary>
 	public class EventSys : Singleton<EventSys>, IMonoSingleton
 	{
-		// ²ÎÊı»ùÓÚ string µÄ»Øµ÷×Öµä
-		private Dictionary<string, HashSet<int>> _paramFuncDic = new();
+		// å­—ç¬¦ä¸²ç´¢å¼•çš„äº‹ä»¶
+		private Dictionary<string, HashSet<int>> _strFuncDic = new();
+		private Queue<(string key, int eid)> _strDelayAdd = new();
+		private Dictionary<int, string> _strDelayRemove = new();
+		
+		// äº‹ä»¶å›è°ƒ
 		private Dictionary<int, Delegate> _funcDic = new();
-		// Ö÷Ïß³ÌÊÂ¼ş¶ÓÁĞ
-		private Queue<(string key, object[] args)> _mainQueue = new();
-		// ÑÓ³ÙÌí¼Ó
-		private ConcurrentQueue<(string key, int id, Delegate func)> _delayAddQueue = new();
-		private ConcurrentDictionary<int, string> _delayRemoveDic = new();
-		private int _funcId = 0;
-
-		private ReaderWriterLockSlim _lock = new();
-
-		void IMonoSingleton.Update()
-		{
-			_lock.EnterReadLock();
-			try
-			{
-				int cnt = 0;
-				while (_mainQueue.TryDequeue(out (string key, object[] args) item) && cnt++ < 32)   // ¶ÓÁĞ²»Îª¿Õ£¬ÇÒÏŞÖÆÒ»Ö¡×î¶à´¦Àí 32 ÌõÊÂ¼ş
-				{
-					Utils.Print($"{item.key}    {JsonConvert.SerializeObject(item.args)}", "·¢ËÍÊÂ¼ş");
-					if (_paramFuncDic.TryGetValue(item.key, out var set))
-					{
-						foreach (var funcId in set)
-						{
-							((EventFunc)_funcDic[funcId])?.Invoke(item.args);
-						}
-					}
-				}
-			}
-			catch (Exception ex)
-			{
-				Utils.Error(ex.Message, "ÊÂ¼şÏµÍ³ Update");
-			}
-			finally { _lock.ExitReadLock(); }
-		}
-
-
+		// è‡ªå¢äº‹ä»¶id
+		private int _eid = 0;
 
 		void IMonoSingleton.Destroy()
 		{
-			_lock.EnterWriteLock();
-			try
+			// æ¸…ç†ç´¢å¼•å­—å…¸
+			foreach (var strSet in _strFuncDic.Values)
 			{
-				foreach (var kvp in _paramFuncDic)
-				{
-					kvp.Value.Clear();
-				}
-				_paramFuncDic.Clear();
-				_delayAddQueue.Clear();
-				_delayRemoveDic.Clear();
-				_funcDic.Clear();
+				strSet.Clear();
 			}
-			catch (Exception ex)
-			{
-				Utils.Error(ex.Message, "ÊÂ¼şÏµÍ³");
-			}
-			finally
-			{
-				_lock.ExitWriteLock();
-				//_lock.Dispose();
-			}
+			_strFuncDic.Clear();
+			_funcDic.Clear();
+			// é‡ç½®äº‹ä»¶id
+			_eid = 0;
 		}
 
-
-		#region ÊÂ¼ş´¦Àí
-		/// <summary>
-		/// Ìí¼Ó¼àÌı
-		/// </summary>
-		/// <param name="key">ÊÂ¼ş±êÊ¶: ÈôÊ¹ÓÃ·ºĞÍ Send()£¬¸Ã²ÎÊı±ØĞëÎª typeof(T).Name£¬Where T : EventParam </param>
-		/// <param name="func">ÊÂ¼ş»Øµ÷</param>
-		/// <returns>ÊÂ¼ş»Øµ÷×ÔÔö id</returns>
-		/// <exception cref="ArgumentNullException"></exception>
+		// æ·»åŠ å­—ç¬¦ä¸²ç´¢å¼•çš„äº‹ä»¶å›è°ƒï¼Œå›è°ƒå‚æ•°ä¸º Object[]
 		public int AddListener(string key, EventFunc func)
 		{
-			if (func == null) throw new ArgumentNullException($"»Øµ÷Îª¿Õ:{nameof(func)}");
-
-			int res = Interlocked.Increment(ref _funcId);
-			_delayAddQueue.Enqueue((key, res, func));
-			return res;
+			if (func == null) throw new ArgumentNullException($"äº‹ä»¶ç³»ç»Ÿçš„å›è°ƒä¸èƒ½ä¸ºç©º key = {key}");
+			int eid = ++_eid;
+			_funcDic[eid] = func;
+			_strDelayAdd.Enqueue((key, eid));	// åŠ å…¥å»¶è¿Ÿæ·»åŠ é˜Ÿåˆ—ä¸­
+			return eid;
 		}
-		//public int AddListener<T>(EventFuncGeneric<T> func) where T : EventParam
-		//{
-		//	if (func == null) throw new ArgumentNullException($"»Øµ÷Îª¿Õ:{nameof(func)}");
-		//	int res = Interlocked.Increment(ref _funcId);
-		//	_delayAddQueue.Enqueue((typeof(T).Name, res, func));
-		//	return res;
-		//}
+		
 
-
-		/// <summary>
-		/// ÒÆ³ı¼àÌı»Øµ÷
-		/// </summary>
-		/// <param name="key">ÊÂ¼ş±êÊ¶: ÈôÊ¹ÓÃ·ºĞÍ Send()£¬¸Ã²ÎÊı±ØĞëÎª typeof(T).Name£¬Where T : EventParam </param>
-		/// <param name="id">ÊÂ¼ş»Øµ÷ id£¬id Îª 0 ÔòÒÆ³ı¸ÃÊÂ¼şµÄËùÓĞ»Øµ÷£¬ÆäËûÔòÒÆ³ıÖ¸¶¨ id µÄ»Øµ÷</param>
 		public void RemoveListener(string key, int id)
 		{
-			_delayRemoveDic.TryAdd(id, key);
+			_strDelayRemove.Add(id, key);		// åŠ å…¥å»¶è¿Ÿå¤„ç†é›†ä¸­
+			_funcDic.Remove(id);
 		}
 
-		public void SendMain(string key, params object[] args)
-		{
-			Profiler.BeginSample("SEND_MAIN");
-			ProcessDelayOperation();
-			_mainQueue.Enqueue((key, args));
-			Profiler.EndSample();
-		}
-
-		/// <summary>
-		/// ·ºĞÍ·½·¨ ÍÆËÍÊÂ¼ş
-		/// </summary>
-		/// <typeparam name="T"></typeparam>
-		/// <param name="param">ÊÂ¼ş»Øµ÷²ÎÊı</param>
-		//public void Send<T>(T param) where T : EventParam
-		//{
-		//	ProcessDelayOperation();
-
-		//	string key = typeof(T).Name;
-		//	if (!_paramFuncDic.ContainsKey(key)) return;
-
-		//	try
-		//	{
-		//		_lock.EnterReadLock();
-		//		foreach (var funcId in _paramFuncDic[key])
-		//		{
-		//			((EventFuncGeneric<T>)_funcDic[funcId])?.Invoke(param);
-		//		}
-		//	}
-		//	catch (Exception ex)
-		//	{
-		//		Debug.LogException(ex);
-		//	}
-		//	finally
-		//	{
-		//		_lock.ExitReadLock();
-		//	}
-		//}
-
-		/// <summary>
-		/// ¿É±ä²ÎÊı ÍÆËÍÊÂ¼ş
-		/// </summary>
-		/// <param name="key">ÊÂ¼ş±êÊ¶</param>
-		/// <param name="args">»Øµ÷²ÎÊı</param>
 		public void Send(string key, params object[] args)
 		{
-			Profiler.BeginSample("SEND");
-			ProcessDelayOperation();
-			_lock.EnterReadLock();
-			try
+			DelayOperation();
+			if (_strFuncDic.TryGetValue(key, out var idSet))
 			{
-				if (_paramFuncDic.TryGetValue(key, out var set))
+				foreach (var eid in idSet)
 				{
-					foreach (var funcId in set)
-					{
-						((EventFunc)_funcDic[funcId])?.Invoke(args);
-					}
+					((EventFunc)_funcDic[eid])?.Invoke(args);
 				}
 			}
-			catch (Exception ex)
-			{
-				Debug.LogException(ex);
-			}
-			finally
-			{
-				_lock.ExitReadLock();
-			}
-			Profiler.EndSample();
 		}
 
-		/// <summary>
-		/// ´¦ÀíÑÓ³ÙÌí¼ÓºÍÉ¾³ı²Ù×÷
-		/// </summary>
-		private void ProcessDelayOperation()
+		public void DelayOperation()
 		{
-			_lock.EnterWriteLock();
-			try
+			// å¤„ç†å»¶è¿Ÿæ·»åŠ 
+			while (_strDelayAdd.TryDequeue(out var item))
 			{
-				// ´¦ÀíÌí¼Ó
-				while (_delayAddQueue.TryDequeue(out var item))
+				// è¿™ä¸ªå›è°ƒåœ¨å»¶è¿Ÿç§»é™¤é›†åˆä¸­
+				if (_strDelayRemove.ContainsKey(item.eid))
 				{
-					// ¸ÃÊÂ¼ş»Øµ÷ÔÚÒÆ³ıÁĞ±íÖĞ£¬²»Ìí¼ÓËü
-					if (_delayRemoveDic.ContainsKey(item.id))
-					{
-						_delayRemoveDic.TryRemove(item.id, out _);
-						continue;
-					}
-					if (_paramFuncDic.TryGetValue(item.key, out var set) == false)
-					{
-						set = new();
-						_paramFuncDic[item.key] = set;
-					}
-					set.Add(item.id);
-					_funcDic.Add(item.id, item.func);
+					_strDelayRemove.Remove(item.eid);
+					continue;
 				}
 
-				// ´¦ÀíÉ¾³ı
-				foreach (var item in _delayRemoveDic)
+				// æ·»åŠ åˆ°ç´¢å¼•å­—å…¸ä¸­
+				if (_strFuncDic.TryGetValue(item.key, out var eidSet) == false)
 				{
-					// ´¦ÀíÒÆ³ıËùÓĞ¼àÌı
-					if (item.Key == 0)
-					{
-						foreach (int id in _paramFuncDic[item.Value])
-						{
-							_funcDic.Remove(id);
-						}
-						_paramFuncDic.Remove(item.Value);
-						continue;
-					}
-					// ´¦ÀíÒÆ³ıµ¥¸ö¼àÌı
-					if (_paramFuncDic.ContainsKey(item.Value))
-					{
-						_paramFuncDic[item.Value].Remove(item.Key);
-					}
-					_funcDic.Remove(item.Key);
+					_strFuncDic[item.key] = eidSet = new();
 				}
-				_delayRemoveDic.Clear();
+				eidSet.Add(item.eid);
 			}
-			catch (Exception ex)
+
+			// å¤„ç†åˆ é™¤
+			foreach (var item in _strDelayRemove)
 			{
-				Debug.LogException(ex);
+				if (_strFuncDic.TryGetValue(item.Value, out var eidSet))
+				{
+					eidSet.Remove(item.Key);
+				}
 			}
-			finally
-			{
-				_lock.ExitWriteLock();
-			}
+			_strDelayRemove.Clear();
 		}
-		#endregion
 	}
 }

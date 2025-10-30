@@ -11,9 +11,9 @@ namespace KGameClient
 		private Queue<(Delegate func, object data)> _cmdQueue = new();
 		private Object _lock = new();
 
+		// 解析协议，并将其送入处理队列中，在 Update 中处理
 		public void Dispatch(byte tp, byte sub, byte[] data)
 		{
-			
 			if (_processorDic.TryGetValue(tp, out var proc))
 			{
 				var item = proc.GetProcessFunc(sub, data);			// 解耦网络接收与协议处理的时机
@@ -52,7 +52,7 @@ namespace KGameClient
 			}
 			catch (Exception ex)
 			{
-				Utils.Error(ex.Message, "CMD 处理");
+				throw ex;
 			}
 			finally
 			{

@@ -39,6 +39,7 @@ namespace KModel
 		void IMonoSingleton.Destroy()
 		{
 			_testAliveFlag = false;
+			if (CurUser != null) LogOutUser(CurUser);
 		}
 
 		// 开启心跳检测任务

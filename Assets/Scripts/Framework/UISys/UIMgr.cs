@@ -17,8 +17,8 @@ namespace KUISys
 		private Dictionary<Type, UIElem> _windowPool = new();
 		
 		public Transform _poolRootTF;
-		//[SerializeField]
 		public RectTransform[] _uiLayerTF;
+		private Stack<UIElem>[] _uiOpenStack;		// ui 堆栈管理
 
 		public void Awake()
 		{
@@ -60,8 +60,6 @@ namespace KUISys
 		{
 			foreach (var item in _elemPool)
 			{
-				UIElemAttribute uiElemAtt = (UIElemAttribute)Attribute.GetCustomAttribute(item.Key, typeof(UIElemAttribute));
-				if (uiElemAtt?.autoRemove == false) continue;
 				foreach (var notUse in item.Value.notUse)
 				{
 					Destroy(notUse.gameObject);
@@ -70,8 +68,6 @@ namespace KUISys
 			}
 			foreach (var elem in _windowPool.Values)
 			{
-				UIElemAttribute uiElemAtt = (UIElemAttribute)Attribute.GetCustomAttribute(elem.GetType(), typeof(UIElemAttribute));
-				if (uiElemAtt?.autoRemove == false) continue;
 				Destroy(elem);
 			}
 			_windowPool.Clear();
@@ -142,7 +138,11 @@ namespace KUISys
 					T elem = go.GetComponent<T>();
 					_windowPool[type] = elem;
 					// 设置父节点
-					if (layer == -1) SetLayer(go, elem.Layer());
+					if (layer == -1)
+					{
+						UIElemAttribute att = (UIElemAttribute)Attribute.GetCustomAttribute(type, typeof(UIElemAttribute));
+						SetLayer(go, att.layer);
+					}
 					else SetLayer(go, layer);
 
 					go.SetActive(true);
@@ -153,7 +153,11 @@ namespace KUISys
 			else if (wnd.gameObject.activeInHierarchy == false)
 			{
 				// 设置父节点
-				if (layer == -1) SetLayer(wnd.gameObject, wnd.Layer());
+				if (layer == -1)
+				{
+					UIElemAttribute att = (UIElemAttribute)Attribute.GetCustomAttribute(type, typeof(UIElemAttribute));
+					SetLayer(wnd.gameObject, att.layer);
+				}
 				else SetLayer(wnd.gameObject, layer);
 				wnd.gameObject.SetActive(true);
 				// 执行打开界面回调

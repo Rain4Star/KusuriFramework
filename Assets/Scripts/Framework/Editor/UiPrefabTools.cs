@@ -103,7 +103,7 @@ public class UiPrefabTools : Editor
 				}
 				catch (Exception ex)
 				{
-					Utils.Error(ex.Message, "UI 预制体工具");
+					throw ex;
 				}
 				AssetDatabase.ImportAsset(csPath);
 				AssetDatabase.Refresh();

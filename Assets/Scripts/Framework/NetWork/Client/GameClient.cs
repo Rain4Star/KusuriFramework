@@ -48,8 +48,8 @@ namespace KGameClient
 			}
 			catch (Exception ex)
 			{
-				Utils.Error(ex.Message);
 				Stop();
+				throw ex;
 			}
 			
 			_mesgQueue = new();
@@ -152,7 +152,7 @@ namespace KGameClient
 					}
 					catch (Exception ex)
 					{
-						Utils.Error(ex.Message);
+						throw ex;
 					}
 					finally
 					{
@@ -170,8 +170,8 @@ namespace KGameClient
 			}
 			catch (Exception ex)
 			{
-				Utils.Error(ex.Message, "利大 Send");
 				Stop();
+				throw ex;
 			}
 		}
 
@@ -234,8 +234,8 @@ namespace KGameClient
 			}
 			catch (Exception ex)
 			{
-				Utils.Error(ex.Message, "利大 Send");
 				Stop();
+				throw ex;
 			}
 		}
 	}
