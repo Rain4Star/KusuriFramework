@@ -1,0 +1,16 @@
+{
+    "name": "Kusuri.KEventSys",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a8a08af22443123488b0fd71b73faa00"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

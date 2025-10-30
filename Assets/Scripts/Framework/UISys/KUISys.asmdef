@@ -1,0 +1,17 @@
+{
+    "name": "Kusuri.KUISys",
+    "rootNamespace": "",
+    "references": [
+        "GUID:a8a08af22443123488b0fd71b73faa00",
+        "GUID:0bf43ca7af4dcdd4eb67897c5074f4fd"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
