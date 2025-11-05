@@ -1,6 +1,5 @@
 using KUISys;
-using System.Collections;
-using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class ScrollTestUI : MonoBehaviour
@@ -9,12 +8,13 @@ public class ScrollTestUI : MonoBehaviour
 	public int cnt = 10;
 	public GameObject item;
 
+	
 	public void Awake()
 	{
 		sv.Init(
 			item, 
-			(int idx, UIElem elem) => 
-			{
+			(int idx, UIElem elem) =>
+			{ 
 				elem.gameObject.name = idx.ToString(); 
 			},
 			null);

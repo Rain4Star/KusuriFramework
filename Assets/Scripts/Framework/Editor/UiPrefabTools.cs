@@ -20,7 +20,6 @@ public class UiPrefabTools : Editor
 
 	public override void OnInspectorGUI()
 	{
-		
 		GameObject go = (target as UIElem).gameObject;
 		if (go == null || go.name != "Prefab")
 		{
@@ -66,7 +65,7 @@ public class UiPrefabTools : Editor
 			{
 				string path = EditorSceneManager.GetActiveScene().path;
 				path = path.Substring(path.LastIndexOf("Scene") + 6).Replace(".unity", ".prefab");
-				path = Path.Combine("Assets", UIMgr.uiRelativePath, path);
+				path = Path.Combine("Assets", ConfigMgr.uiRelativePath, path);
 				UnityEngine.Object asset = AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(path);
 				if (asset != null)
 				{
@@ -88,7 +87,7 @@ public class UiPrefabTools : Editor
 		path = path.Substring(path.LastIndexOf("Scene") + 6).Replace(".unity", "");
 
 		UIElem comp = go.GetComponent<UIElem>();
-		string csPath = Path.Combine(UIMgr.scPath, $"{path}.cs");
+		string csPath = Path.Combine(ConfigMgr.scPath, $"{path}.cs");
 		if (comp != null)
 		{
 			if (!File.Exists(csPath))
@@ -142,7 +141,7 @@ public class UiPrefabTools : Editor
 		// ∆¥Ω”¿‡√˚
 		string path = EditorSceneManager.GetActiveScene().path;
 		path = path.Substring(path.LastIndexOf("Scene") + 6).Replace(".unity", "");
-		string prefabPath = Path.Combine(UIMgr.uiPath, $"{path}.prefab");
+		string prefabPath = Path.Combine(ConfigMgr.uiPath, $"{path}.prefab");
 		string dir = Path.GetDirectoryName(prefabPath);
 		if (Directory.Exists(dir) == false) Directory.CreateDirectory(dir);
 

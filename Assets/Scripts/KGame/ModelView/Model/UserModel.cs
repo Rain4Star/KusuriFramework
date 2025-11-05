@@ -1,12 +1,12 @@
 ﻿using KEventSys;
 using KGameClient;
 using Kusuri;
-using Kusuri.GameUI;
 using System;
+using System.Collections.Generic;
 
 namespace KModel
 {
-	public class UserModel : ModelBase, IMonoSingleton
+	public class UserModel : ModelBase
 	{
 		private long _lastAliveTime;			
 		private long _nextAliveTime;
@@ -18,7 +18,15 @@ namespace KModel
 
 		public User CurUser { get; private set; }
 
-		void IMonoSingleton.Update()
+		public Dictionary<int, BagItem> Bag { get; private set; } = new();
+		private Dictionary<int, BagItem> _tempBag = new();
+
+		public override void Init(ModelMgr ins)
+		{
+			ins.onUpdate += Update;
+		}
+
+		public void Update()
 		{
 			if (_testAliveFlag == true)
 			{
@@ -36,7 +44,7 @@ namespace KModel
 				}
 			}
 		}
-		void IMonoSingleton.Destroy()
+		public void Destroy()
 		{
 			_testAliveFlag = false;
 			if (CurUser != null) LogOutUser(CurUser);
@@ -89,5 +97,24 @@ namespace KModel
 
 		}
 		#endregion 用户数据模块
+
+
+		#region 背包模块
+		// SC 1-6 下发用户背包数据
+		public void SC_SendBag(BagItem[] bag)
+		{
+			_tempBag.Clear();
+			foreach (BagItem item in bag)
+			{
+				_tempBag[item.Id] = item;
+			}
+			// 交换
+			(Bag, _tempBag) = (_tempBag, Bag);
+			// 清除老数据
+			_tempBag.Clear();
+		}
+
+
+		#endregion 背包模块
 	}
 }

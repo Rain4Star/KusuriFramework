@@ -1,0 +1,4 @@
+[
+    {"id":1000001,"name":"鲇鱼","quality":4,"icon":1000001,"sellPrice":450,"desc":"春3就该钓它！"},
+    {"id":1000002,"name":"大嘴鱼","quality":4,"icon":1000002,"sellPrice":250,"desc":"生活在森林湖泊中的鱼"}
+]

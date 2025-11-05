@@ -348,7 +348,7 @@ MonoBehaviour:
   padding: {x: 0, y: 0, z: 0, w: 0}
   _itemPosList: []
   limitRowOrCol: 0
-  limitCnt: 6
+  limitCnt: 7
 --- !u!114 &1449879074
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -363,7 +363,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Content: {fileID: 1402961652}
   m_Horizontal: 1
-  m_Vertical: 0
+  m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1
   m_Inertia: 1
@@ -535,7 +535,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sv: {fileID: 1449879073}
-  cnt: 18
+  cnt: 21
   item: {fileID: 2025376431}
 --- !u!1 &1819180208
 GameObject:

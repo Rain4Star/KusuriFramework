@@ -7,7 +7,7 @@
 	/// </summary>
 	public class ModelBase
 	{
-		public virtual void Init() { }
+		public virtual void Init(ModelMgr ins) { }
 
 		public virtual void Clear() { }
 	}

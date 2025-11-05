@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace KGameClient
 {
-	public class GameClient : Singleton<GameClient> , IMonoSingleton
+	public class GameClient : MonoSingleton<GameClient>
 	{
 		public static string ip = "127.0.0.1";
 		public static int port = 12230;
@@ -25,12 +25,13 @@ namespace KGameClient
 
 		private CmdDispatcher _dispatcher = new();
 
-		void IMonoSingleton.Update() 
+		public void Update() 
 		{
 			_dispatcher.Update();
 		}
-		void IMonoSingleton.Destroy()
+		public override void OnApplicationQuit()
 		{
+			base.OnApplicationQuit();
 			Stop();
 		}
 

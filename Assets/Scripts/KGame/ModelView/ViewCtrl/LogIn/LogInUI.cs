@@ -48,7 +48,6 @@ namespace Kusuri.GameUI
 		private void RegClick()
 		{
 			UserProcessor.CS_CreateUser(unameInpt.text, pwadInpt.text);
-			UIMgr.Ins.CloseWindow<LogInUI>();
 		}
 	}
 }

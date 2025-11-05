@@ -10,7 +10,7 @@ namespace KEventSys
 	/// <summary>
 	/// 非线程安全的事件系统
 	/// </summary>
-	public class EventSys : Singleton<EventSys>, IMonoSingleton
+	public class EventSys : MonoSingleton<EventSys>
 	{
 		// 字符串索引的事件
 		private Dictionary<string, HashSet<int>> _strFuncDic = new();
@@ -22,8 +22,9 @@ namespace KEventSys
 		// 自增事件id
 		private int _eid = 0;
 
-		void IMonoSingleton.Destroy()
+		public override void OnApplicationQuit()
 		{
+			base.OnApplicationQuit();
 			// 清理索引字典
 			foreach (var strSet in _strFuncDic.Values)
 			{
@@ -62,6 +63,7 @@ namespace KEventSys
 					((EventFunc)_funcDic[eid])?.Invoke(args);
 				}
 			}
+			Utils.PrintEvent(key, idSet == null ? 0 : idSet.Count, args);
 		}
 
 		public void DelayOperation()

@@ -1,8 +1,7 @@
 using System;
 using System.Diagnostics;
+using System.Text;
 using Unity.Plastic.Newtonsoft.Json;
-using UnityEditor;
-using UnityEngine;
 
 using Debug = UnityEngine.Debug;
 
@@ -12,6 +11,7 @@ namespace Kusuri
 	{
 		public static bool netDebug = true;
 		public static bool debug = true;
+		public static bool eventDebug = true;
 
 		/// <summary>
 		/// 在 offset 位置，写入一个 int 到 buffer 中
@@ -104,6 +104,23 @@ namespace Kusuri
 			catch { }
 		}
 
+
+		[Conditional("__DEBUG__")]
+		public static void PrintEvent(string key, int cbCnt, params object[] args)
+		{
+			if(eventDebug == false) return;
+			try
+			{
+				StringBuilder sb = new();
+				foreach (var arg in args)
+				{
+					sb.Append($"{arg}\n");
+				}
+				Debug.Log($"[Event]: key = <color=#ca0065>{key}</color>, call back count = <color=#ca0065>{cbCnt}</color>\n{sb.ToString()}");
+			}
+			catch { }
+		}
+
 		[Conditional("__NET_DEBUG__")]
 		public static void PrintSend(byte tp, byte sub, string data, int len)
 		{
@@ -117,6 +134,8 @@ namespace Kusuri
 			string json = JsonConvert.SerializeObject(data);
 			Debug.Log($"<color=#caca00><size=18>==>> Recv  {tp} - {sub}</size></color>    len = {len}{(string.IsNullOrEmpty(json) ? "" : $"\n{json} ")}");
 		}
+
+
 	}
 }
 

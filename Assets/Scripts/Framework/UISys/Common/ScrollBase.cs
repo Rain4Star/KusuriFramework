@@ -125,7 +125,7 @@ namespace KUISys
 			return ui;
 		}
 
-		protected void HideItem(int idx)
+		public void HideItem(int idx)
 		{
 			if (_showDic.ContainsKey(idx) == false) return;
 			UIElem go = _showDic[idx];

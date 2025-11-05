@@ -1,46 +1,32 @@
 ﻿using System;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Profiling;
 
 namespace Kusuri
 {
-	public interface IMonoSingleton
-	{
-		public virtual void Start() { }
-		public virtual void OnEnable() { }
-		public virtual void OnDisable() { }
-		public virtual void Update() { }
-		public virtual void Destroy() { }
-	}
+	//public class Singleton<T> where T : Singleton<T>, new()
+	//{
+	//	private static T _ins;
+	//	/// <summary>
+	//	/// 单例
+	//	/// </summary>
+	//	public static T Ins => _ins;
 
-	public class Singleton<T> where T : Singleton<T>, new()
-	{
-		private static T _ins;
-		/// <summary>
-		/// 单例
-		/// </summary>
-		public static T Ins => _ins;
+	//	static Singleton()
+	//	{
+	//		_ins = new T();
+	//		Utils.Print($"<color=#ca0000><size=18>Create Singleton {typeof(T).Name}</size></color>");
+	//		_ins.Init();
+	//	}
 
-		static Singleton()
-		{
-			_ins = new T();
-			Utils.Print($"<color=#ca0000><size=18>Create Singleton {typeof(T).Name}</size></color>");
-			if (_ins is IMonoSingleton)
-			{
-				MonoSingletonMgr.Add(_ins as IMonoSingleton);
-			}
-			_ins.Init();
-		}
+	//	protected Singleton() { }
 
-		protected Singleton() { }
-
-		protected virtual void Init() { }
-	}
+	//	protected virtual void Init() { }
+	//}
 
 	public class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T>, new()
 	{
 		private static T _ins;
+		
 		public static T Ins
 		{
 			get
@@ -51,10 +37,11 @@ namespace Kusuri
 					if (_ins == null)
 					{
 						GameObject go = new GameObject($"Ins_{typeof(T).Name}");
+						Utils.Print($"Create <color=#00ca00>{go.name}</color>");
 						_ins = go.AddComponent<T>();
-						_ins.Init();
-						GameObject.DontDestroyOnLoad(go);
 					}
+					_ins.Init();
+					GameObject.DontDestroyOnLoad(_ins.gameObject);
 				}
 				return _ins;
 			}
@@ -64,41 +51,10 @@ namespace Kusuri
 
 		protected virtual void Init() { }
 
-		public virtual void Clear() { }
-	}
-
-
-	/// <summary>
-	/// 普通 Singleton 单例生命周期管理器
-	/// </summary>
-	public class MonoSingletonMgr
-	{
-		public static bool isInGame = false;
-
-		private static List<IMonoSingleton> _monoInsList = new();
-
-		public static void Add(IMonoSingleton ins)
+		public virtual void OnApplicationQuit()
 		{
-			_monoInsList.Add(ins);
-		}
-
-		public static void Update()
-		{
-			int cnt = _monoInsList.Count;
-			
-			for (int i = 0; i < cnt; i++)
-			{
-				
-				_monoInsList[i].Update();
-			}
-		}
-
-		public static void OnDestroy()
-		{
-			foreach (var ins in _monoInsList)
-			{
-				ins.Destroy();
-			}
+			Utils.Print($"Delete <color=#ca0000>Ins_{typeof(T).Name}</color>");
+			_ins = null;
 		}
 	}
 }

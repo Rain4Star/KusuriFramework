@@ -4,13 +4,19 @@ using System.Collections.Generic;
 
 namespace KModel
 {
-	public class ModelMgr : Singleton<ModelMgr>, IMonoSingleton
+	public class ModelMgr : MonoSingleton<ModelMgr>
 	{
 		private Dictionary<Type, ModelBase> _modelDic = new();
 
-		void IMonoSingleton.Update() { }
-		void IMonoSingleton.Destroy()
+		public Action onUpdate;
+
+		public void Update() 
 		{
+			onUpdate?.Invoke();
+		}
+		public override void OnApplicationQuit()
+		{
+			base.OnApplicationQuit();
 			Clear();
 		}
 
@@ -22,8 +28,7 @@ namespace KModel
 				return model as T;
 			}
 			T res = new T();
-			res.Init();
-			if (res is IMonoSingleton) MonoSingletonMgr.Add(res as IMonoSingleton);
+			res.Init(this);
 			_modelDic[type] = res;
 			return res;
 		}
