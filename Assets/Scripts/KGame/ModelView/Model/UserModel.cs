@@ -18,8 +18,7 @@ namespace KModel
 
 		public User CurUser { get; private set; }
 
-		public Dictionary<int, BagItem> Bag { get; private set; } = new();
-		private Dictionary<int, BagItem> _tempBag = new();
+		public List<BagItem> Bag { get; private set; } = new();
 
 		public override void Init(ModelMgr ins)
 		{
@@ -103,15 +102,19 @@ namespace KModel
 		// SC 1-6 下发用户背包数据
 		public void SC_SendBag(BagItem[] bag)
 		{
-			_tempBag.Clear();
-			foreach (BagItem item in bag)
+			Bag.Clear();
+			if(bag != null)
 			{
-				_tempBag[item.Id] = item;
+				foreach (BagItem item in bag)
+				{
+					Bag.Add(item);
+				}
 			}
-			// 交换
-			(Bag, _tempBag) = (_tempBag, Bag);
-			// 清除老数据
-			_tempBag.Clear();
+			Bag.Sort((a, b) =>
+			{ 
+				return a.Id.CompareTo(b.Id);
+			});
+			EventSys.Ins.Send("UPDATE_BAG_ALL");
 		}
 
 

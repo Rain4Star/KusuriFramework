@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace KGameClient
 {
-	public class GameClient : MonoSingleton<GameClient>
+	public class GameClient : MonoSingleton<GameClient>, IDisposable
 	{
 		public static string ip = "127.0.0.1";
 		public static int port = 12230;
@@ -35,6 +35,19 @@ namespace KGameClient
 			Stop();
 		}
 
+
+		void IDisposable.Dispose()
+		{
+			_isRun = false;
+			_cts?.Cancel();
+			_tcp?.Close();
+			_stream?.Dispose();
+			_tcp?.Dispose();
+			_cts?.Dispose();
+			_mesgQueue.Clear();
+			_dispatcher.Clear();
+		}
+
 		/// <summary>
 		/// 启动 TCP 客户端
 		/// </summary>
@@ -42,33 +55,64 @@ namespace KGameClient
 		{
 			_cts = new();
 			_tcp = new();
+			_mesgQueue.Clear();
+			int retry = 0;
+			int time = 1_000;
+			while (retry < 5)
+			{
+				try
+				{
+					await _tcp.ConnectAsync(ip, port);
+					_stream = _tcp.GetStream();
+
+					ThreadPool.QueueUserWorkItem(_ => { RevcFunc(); });
+					ThreadPool.QueueUserWorkItem(_ => { SendFunc(); });
+
+					_isRun = true;
+					startFunc?.DynamicInvoke();
+					Utils.Print($"已连接至{_tcp.Client.RemoteEndPoint}", "网络连接");
+					break;
+				}
+				catch (SocketException ex)
+				{
+					time <<= 1;         // 重连等待时间，指数增长
+					Utils.Error(ex.Message, "网络连接失败");
+					await Task.Delay(time, _cts.Token);
+				}
+				catch (Exception ex)
+				{
+					Utils.Error(ex.Message, "网络连接错误");
+					break;
+				}
+			}
+		}
+
+		public async Task Reconnect()
+		{
+			Utils.Warn("尝试重连");
+			Stop();
+			_cts = new();
+			_tcp = new();
+			_mesgQueue.Clear();
 			try
 			{
 				await _tcp.ConnectAsync(ip, port);
 				_stream = _tcp.GetStream();
+
+				ThreadPool.QueueUserWorkItem(_ => { RevcFunc(); });
+				ThreadPool.QueueUserWorkItem(_ => { SendFunc(); });
+
+				_isRun = true;
+				Utils.Print($"已连接至{_tcp.Client.RemoteEndPoint}", "网络连接");
+			}
+			catch (SocketException ex)
+			{
+				Utils.Error(ex.Message, "网络连接失败");
 			}
 			catch (Exception ex)
 			{
-				Stop();
-				throw ex;
+				Utils.Error(ex.Message, "网络连接错误");
 			}
-			
-			_mesgQueue = new();
-			
-			Utils.Print($"已连接至{_tcp.Client.RemoteEndPoint}", "网络连接");
-
-			ThreadPool.QueueUserWorkItem(_ => { RevcFunc(); });
-			ThreadPool.QueueUserWorkItem(_ => { SendFunc(); });
-
-			_isRun = true;
-			startFunc?.DynamicInvoke();
-		}
-
-		public void Reconnect()
-		{
-			Utils.Warn("尝试重连");
-			Stop();
-			StartClient();
 		}
 
 		/// <summary>
@@ -79,7 +123,7 @@ namespace KGameClient
 			Utils.Error("客户端Stop");
 			_cts?.Cancel();
 			_isRun = false;
-			_dispatcher.Clear();
+			//_dispatcher.Clear();
 			_stream?.Close();
 			_tcp?.Close();
 			_tcp?.Dispose();

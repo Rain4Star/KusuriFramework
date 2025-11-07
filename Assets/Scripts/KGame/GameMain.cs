@@ -6,42 +6,8 @@ using KModel;
 using System;
 using KConfig;
 using Kusuri;
-using UnityEngine.UI;
-using Newtonsoft.Json;
-using System.Linq;
-
 public class GameMain : MonoBehaviour
 {
-	public Image img;
-
-	public void OnGUI()
-	{
-		if (GUILayout.Button("111"))
-		{
-			UIMgr.Ins.OpenWindow<Stack1_1>();
-		}
-		else if (GUILayout.Button("111_111"))
-		{
-			UIMgr.Ins.OpenWindow<Stack1_11>();
-		}
-		else if (GUILayout.Button("222"))
-		{
-			UIMgr.Ins.OpenWindow<Stack2_1>();
-		}
-		else if (GUILayout.Button("Close_111"))
-		{
-			UIMgr.Ins.CloseWindow<Stack1_1>();
-		}
-		else if (GUILayout.Button("Close_111_111"))
-		{
-			UIMgr.Ins.CloseWindow<Stack1_11>();
-		}
-		else if (GUILayout.Button("Close_222"))
-		{
-			UIMgr.Ins.CloseWindow<Stack2_1>();
-		}
-	}
-
 	public void Awake()
 	{
 		DontDestroyOnLoad(this);
@@ -53,17 +19,17 @@ public class GameMain : MonoBehaviour
 			}
 		);
 		GameClient.Ins.StartClient((Action)StartFunc);
+
+		UITools.Init();
 	}
 
 	private void StartFunc()
 	{
 		ModelMgr.Ins.GetModel<UserModel>().CS_TestAlive();
-		
 	}
 
 	public void Start()
 	{
 		UIMgr.Ins.OpenWindow<LogInUI>();
-		Utils.Print(JsonConvert.SerializeObject(ConfigMgr.Ins.GetCfgObj<ItemCfg>().GetDic<ItemCfg>().Values.ToArray()));
 	}
 }

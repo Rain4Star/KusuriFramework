@@ -5,7 +5,7 @@ using KModel;
 
 namespace Kusuri.GameUI
 {
-	[UIElem("LogIn/LogInUI")]
+	[UIElem("LogIn/LogInUI", 2)]
 	public class LogInUI : UIElem
 	{
 		public Text titleTxt;
@@ -26,8 +26,7 @@ namespace Kusuri.GameUI
 			regBtn.onClick.AddListener(RegClick);
 			_logEid = EventSys.Ins.AddListener("USER_LOGIN", (objArr) => 
 			{
-				UIMgr.Ins.CloseWindow<LogInUI>();
-				UIMgr.Ins.OpenWindow<SmallGameUI>();
+				UIMgr.Ins.OpenWindow<BagUI>();
 			});
 
 		}

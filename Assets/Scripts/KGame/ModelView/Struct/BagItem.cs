@@ -8,6 +8,8 @@ namespace KModel
 		// id, cnt
 		[JsonRequired]
 		private int[] data;
+		public int Quality { get; private set; }
+		public int Catgory { get; private set; }
 
 		public override bool Equals(object? obj)
 		{

@@ -1,3 +1,4 @@
+using KConfig;
 using KModel;
 using KUISys;
 using Kusuri;

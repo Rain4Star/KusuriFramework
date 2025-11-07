@@ -1,4 +1,25 @@
 [
-    {"id":1000001,"atlas":"Item\fish","name":"Catfish"},
-    {"id":1000002,"atlas":"Item\fish","name":"Largemouth_Bass"}
+    {"id":1, "atlas":"Common","name":"null_pic"},
+    {"id":2, "atlas":"Icon","name":"Silver_Quality"},
+    {"id":3, "atlas":"Icon","name":"Gold_Quality"},
+    {"id":4, "atlas":"Icon","name":"Iridium_Quality"},
+    
+
+    {"id":1000001,"atlas":"Item\\fish","name":"Catfish"},
+    {"id":1000002,"atlas":"Item\\fish","name":"Largemouth_Bass"},
+    {"id":1000003,"atlas":"Item\\fish","name":"Bullhead"},
+    {"id":1000004,"atlas":"Item\\fish","name":"Carp"},
+    {"id":1000005,"atlas":"Item\\fish","name":"Legend"},
+
+    {"id":1000006,"atlas":"Item\\fish","name":"Chub"},
+    {"id":1000007,"atlas":"Item\\fish","name":"Smallmouth_Bass"},
+    {"id":1000008,"atlas":"Item\\fish","name":"Shad"},
+    {"id":1000009,"atlas":"Item\\fish","name":"Bream"},
+    {"id":1000010,"atlas":"Item\\fish","name":"Sunfish"},
+
+    {"id":1000011,"atlas":"Item\\fish","name":"Blobfish"},
+    {"id":1000012,"atlas":"Item\\fish","name":"Midnight_Squid"},
+    {"id":1000013,"atlas":"Item\\fish","name":"Pufferfish"},
+    {"id":1000014,"atlas":"Item\\fish","name":"Legend_II"},
+    {"id":1000015,"atlas":"Item\\fish","name":"Super_Cucumber"}
 ]

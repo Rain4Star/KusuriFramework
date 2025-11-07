@@ -1116,7 +1116,7 @@ MonoBehaviour:
   padding: {x: 9, y: -10, z: -9, w: 0}
   _itemPosList: []
   limitRowOrCol: 0
-  limitCnt: 6
+  limitCnt: 5
 --- !u!114 &1621074948
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1129,15 +1129,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_Content: {fileID: 0}
-  m_Horizontal: 1
+  m_Content: {fileID: 1142204339}
+  m_Horizontal: 0
   m_Vertical: 1
   m_MovementType: 1
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
   m_ScrollSensitivity: 1
-  m_Viewport: {fileID: 0}
+  m_Viewport: {fileID: 1832443914}
   m_HorizontalScrollbar: {fileID: 0}
   m_VerticalScrollbar: {fileID: 0}
   m_HorizontalScrollbarVisibility: 0

@@ -10,7 +10,7 @@ namespace KConfig
 	public class IconCfg
 	{
 		public int id;
-		public string atla;
+		public string atlas;
 		public string name;
 	}
 }

@@ -95,7 +95,7 @@ namespace KUISys
 			// 计算 content 的大小
 			_contentRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, _rowCnt * _yGap - spacing.y - padding.y + padding.w);
 			_contentRect.SetSizeWithCurrentAnchors(RectTransform.Axis.Horizontal, _colCnt * _xGap - spacing.x + padding.x - padding.z);
-			float x = 0, y = 0;
+			float x = padding.x, y = padding.y;
 			_itemPosList.Clear();
 			for (int i = 0; i < _rowCnt; i++)
 			{
@@ -104,7 +104,7 @@ namespace KUISys
 					_itemPosList.Add(new Vector2(x, y));
 					x += _xGap;
 				}
-				x = 0;
+				x = padding.x;
 				y -= _yGap;
 			}
 		}
