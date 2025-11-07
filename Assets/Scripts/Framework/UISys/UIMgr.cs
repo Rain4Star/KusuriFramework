@@ -232,6 +232,10 @@ namespace KUISys
 				Utils.Print($"<color=#ca0065>{wType.Name}</color>没有创建");
 				return;
 			}
+			if (item.ui.gameObject.activeInHierarchy == false)
+			{
+				return;
+			}
 			int openType = item.att.openType;
 			switch (openType)
 			{
