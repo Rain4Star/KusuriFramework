@@ -1,36 +1,82 @@
 using KConfig;
 using Kusuri;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq.Expressions;
 using System.Reflection;
 using UnityEngine;
 
-public class ConfigMgr : MonoSingleton<ConfigMgr>
+
+public class CfgObj
 {
-	internal class ConfigDic
+	public enum ECFG_TYPE
 	{
-		public float lastCheck;
-		public object dic;
-		public uint visit;
+		None = 0,
+		IntDic = 1,
+		List = 2
+	};
+
+	public float lastCheck;
+	public object data;
+	public uint visit;
+
+	public ECFG_TYPE type = ECFG_TYPE.None;
+
+	public T GetItem<T>(int id)
+	{
+		switch (type)
+		{
+			case ECFG_TYPE.IntDic:
+			{
+				if ((data as Dictionary<int, T>).TryGetValue(id, out var val))
+				{
+					visit++;
+					return val;
+				}
+				break;
+			}
+			case ECFG_TYPE.List:
+			{
+				if (data is List<T> list)
+				{
+					visit++;
+					if (id >= 0 && id < list.Count) return list[id];
+				}
+				break;
+			}
+		}
+		return default;
 	}
 
+	public Dictionary<int, T> GetDic<T>()
+	{
+		return data as Dictionary<int, T>;
+	}
+
+	public List<T> GetList<T>()
+	{
+		return data as List<T>;
+	}
+}
+
+public class ConfigMgr : MonoSingleton<ConfigMgr>
+{
 	public static readonly string _cfgPath = Path.Combine(Application.dataPath, "Scripts", "JsonData", "Config");
 	public static string uiAss = "Kusuri.KModeView";
 	public static string uiRelativePath = Path.Combine("Resources", "Prefab", "UI");            // ui 预设相对目录
 	public static string uiPath = Path.Combine(Application.dataPath, uiRelativePath);           // ui 预设目录
 	public static string scPath = Path.Combine(Application.dataPath, "Scripts", "KGame", "ModelView", "ViewCtrl");      // ui 脚本目录
 
-	private Dictionary<string, ConfigDic> _cfgDic = new();
+	private Dictionary<string, CfgObj> _cfgDic = new();
 
-	private Queue<(string, ConfigDic)>[] _checkQueue;
+	private Queue<(string, CfgObj)>[] _checkQueue;
 	private uint _checkIdx = 0;
 
 	protected override void Init()
 	{
-		_checkQueue = new Queue<(string, ConfigDic)>[3];
+		_checkQueue = new Queue<(string, CfgObj)>[3];
 		for (int i = 0; i < 3; i++) _checkQueue[i] = new();
 	}
 
@@ -38,6 +84,24 @@ public class ConfigMgr : MonoSingleton<ConfigMgr>
 	{
 		InvokeRepeating("CheckNotUse", 600, 600);		// 10 分钟检测一波
 	}
+
+	// T 带有 CfgItem 注解时，可以调用
+	public CfgObj GetCfgObj<T>()
+	{
+		Type type = typeof(T);
+		if (_cfgDic.TryGetValue(type.Name, out var obj)) return obj;
+		if (_cfgDic.ContainsKey(type.Name)) return _cfgDic[type.Name];
+		CfgItemAttribute att = (CfgItemAttribute)Attribute.GetCustomAttribute(type, typeof(CfgItemAttribute));
+		if (att == null) return null;
+		return LoadCfg<T>(type.Name, att.mainKey, att.resPath, att.notClear);
+	}
+	// T 没有 CfgItem 注解时，可以调用
+	public CfgObj GetCfgObj<T>(string path, string mainKey = null, bool notClear = false)
+	{
+		if (_cfgDic.TryGetValue(path, out var obj)) return obj;
+		return LoadCfg<T>(path, mainKey, path, notClear);
+	}
+
 
 	private void CheckNotUse()
 	{
@@ -67,81 +131,42 @@ public class ConfigMgr : MonoSingleton<ConfigMgr>
 		_checkIdx++;
 		if (_checkIdx == _checkQueue.Length) _checkIdx = 0;
 	}
-
-	public T GetCfgByMainKey<T>(int id)
+	private CfgObj LoadCfg<T>(string key, string mainKey, string path, bool notClear)
 	{
-		Type type = typeof(T);
-		if (_cfgDic.TryGetValue(type.Name, out ConfigDic obj) == false)
+		path = Path.Combine(_cfgPath, path);
+		if (File.Exists(path) == false)
 		{
-			if (TryLoadCfg<T>(type) == true) obj = _cfgDic[type.Name];
+			Utils.Error($"不存在配置文件: {path}");
+			return null;
 		}
-		obj.visit++;
-		if (obj.dic is Dictionary<int, T> dic)
-		{
-			if (dic.ContainsKey(id)) return dic[id];
-		}
-		return default;
-	}
-	//public T GetCfgByMainKey<T>(string mainKey)
-	//{
-	//	Type type = typeof(T);
-	//	if (_cfgDic.TryGetValue(type.Name, out object obj))
-	//	{
-	//		if (obj is Dictionary<string, T> dic)
-	//		{
-	//			if (dic.ContainsKey(mainKey)) return dic[mainKey];
-	//		}
-	//	}
-	//	else
-	//	{
-	//	}
-	//	return default;
-	//}
-
-	private bool TryLoadCfg<T>(Type type)
-	{
-		if (_cfgDic.ContainsKey(type.Name)) return false;
-		CfgItemAttribute att = (CfgItemAttribute)Attribute.GetCustomAttribute(type, typeof(CfgItemAttribute));
-		if (att == null) return false;
-		string path = Path.Combine(_cfgPath, att.resPath);
-		if (File.Exists(path) == false) return false;
 		try
 		{
-			var cfg = JsonConvert.DeserializeObject<T[]>(File.ReadAllText(path));
-			// 反射获取字段
-			FieldInfo field = type.GetField(att.mainKey, BindingFlags.Public | BindingFlags.Instance);
-			Dictionary<int, T> dic = new(cfg.Length);
-			foreach (var elem in cfg)
+			string json = File.ReadAllText(path);
+			CfgObj obj = new();
+			obj.lastCheck = Time.time;
+			_cfgDic[key] = obj;
+			if (string.IsNullOrEmpty(mainKey))
 			{
-				dic[(int)field.GetValue(elem)] = elem;
+				// 加载为 list
+				obj.data = JsonConvert.DeserializeObject<List<T>>(json);
+				obj.type = CfgObj.ECFG_TYPE.List;
 			}
-			ConfigDic cfgDic = new();
-			cfgDic.lastCheck = Time.time;
-			cfgDic.dic = dic;
-			_cfgDic[type.Name] = cfgDic;
-			// 参与代际回收
-			if (att.notClear == false) _checkQueue[0].Enqueue((type.Name, cfgDic));
-			return true;
+			else
+			{
+				// 加载为 int -> T 的字典
+				T[] cfg = JsonConvert.DeserializeObject<T[]>(json);
+				FieldInfo field = typeof(T).GetField(mainKey);
+				Dictionary<int, T> dic = new(cfg.Length);
+				foreach (var elem in cfg) dic[(int)field.GetValue(elem)] = elem;
+				obj.data = dic;
+				obj.type = CfgObj.ECFG_TYPE.IntDic;
+			}
+			if (notClear == false) _checkQueue[0].Enqueue((key, obj));
+			return obj;
 		}
 		catch
 		{
-			return false;
+			return null;
 		}
-	}
-
-
-	public Dictionary<int, T> GetCfgDic<T>()
-	{
-		Type type = typeof(T);
-		if (_cfgDic.TryGetValue(type.Name, out var cfgDic) == false)
-		{
-			if (TryLoadCfg<T>(type) == true)
-			{
-				cfgDic = _cfgDic[type.Name];
-			}
-		}
-		cfgDic.visit += 8;		// TO_OPTIMIZE 获取表，这里不知道如何处理访问计数，暂且直接加一个大的值
-		if (cfgDic.dic is Dictionary<int, T> dic) return dic;
-		else return null;
 	}
 }

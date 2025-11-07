@@ -7,6 +7,8 @@ using System;
 using KConfig;
 using Kusuri;
 using UnityEngine.UI;
+using Newtonsoft.Json;
+using System.Linq;
 
 public class GameMain : MonoBehaviour
 {
@@ -62,5 +64,6 @@ public class GameMain : MonoBehaviour
 	public void Start()
 	{
 		UIMgr.Ins.OpenWindow<LogInUI>();
+		Utils.Print(JsonConvert.SerializeObject(ConfigMgr.Ins.GetCfgObj<ItemCfg>().GetDic<ItemCfg>().Values.ToArray()));
 	}
 }
