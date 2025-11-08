@@ -1,14 +1,10 @@
-﻿using Kusuri;
-using System.IO;
+﻿using System.IO;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace KConfig
 {
 	public class AssetTools
 	{
-
-
 		public static Sprite LoadSprite(string atlas, string name)
 		{
 			string path = Path.Combine(ConfigMgr.atlaPath, atlas, name);

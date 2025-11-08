@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace KUISys
 {
@@ -17,11 +18,14 @@ namespace KUISys
 		private List<HashSet<Type>> _uiStk;       // ui 堆栈管理
 		private int _uiStkTop = 0;
 
+		private List<Text> _multiLanguageText;
+
 		public void Awake()
 		{
 			DontDestroyOnLoad(this);
 			InvokeRepeating("RemoveNotUse", 360.0f, 360.0f);            // 每 6 分钟清理一次 池子 和 Resources 中未使用的资源
 			_uiStk = new();
+			_multiLanguageText = new();
 		}
 
 		public override void OnApplicationQuit()
@@ -104,6 +108,18 @@ namespace KUISys
 			return Resources.LoadAsync(path);
 		}
 
+
+		
+		private void InitMultiLanguage(UIElem elem)
+		{
+			_multiLanguageText.Clear();
+			elem.GetComponentsInChildren<Text>(true, _multiLanguageText);
+			foreach (var txt in _multiLanguageText)
+			{
+				string lang = txt.text;
+				if (string.IsNullOrEmpty(lang)) continue;
+			}
+		}
 
 		#region UI 管理模块 TO_OPTIMIZE:这几个函数耦合度有点高，可维护性有待改善
 		/// <summary>

@@ -11,7 +11,6 @@ namespace KConfig
 	public class ConfigMgr : MonoSingleton<ConfigMgr>
 	{
 		public static string atlaPath = Path.Combine("ArtSrc", "Atlas");
-
 		public static string cfgPath = Path.Combine(Application.dataPath, "Scripts", "JsonData", "Config");
 		public static string uiAss = "Kusuri.KModeView";
 		public static string uiRelativePath = Path.Combine("Resources", "Prefab", "UI");            // ui 预设相对目录
@@ -42,15 +41,44 @@ namespace KConfig
 			if (_cfgDic.ContainsKey(type.Name)) return _cfgDic[type.Name];
 			CfgItemAttribute att = (CfgItemAttribute)Attribute.GetCustomAttribute(type, typeof(CfgItemAttribute));
 			if (att == null) return null;
-			return LoadCfg<T>(type.Name, att.mainKey, att.resPath, att.notClear);
+			return LoadCfg<T>(type.Name, att.mainKey, att.resPath, att.notClear, att.languageList);
 		}
 		// T 没有 CfgItem 注解时，可以调用
-		public CfgObj GetCfgObj<T>(string path, string mainKey = null, bool notClear = false)
+		public CfgObj GetCfgObj<T>(string path, string mainKey = null, bool notClear = false, string[] languageList = null)
 		{
 			if (_cfgDic.TryGetValue(path, out var obj)) return obj;
-			return LoadCfg<T>(path, mainKey, path, notClear);
+			return LoadCfg<T>(path, mainKey, path, notClear, languageList);
 		}
 
+		// 多语言文本
+		public string GetLanguage(int langId)
+		{
+			int seg = langId >> 10;
+			int id = langId & 0x3ff;
+			// TODO: 这里还要获取对应的语言所在的文件夹
+			string path = Path.Combine("LanguageCN", $"CN_{seg}");
+			CfgObj cfg = GetCfgObj<string>(path);
+			if (cfg == null)
+			{
+				Utils.Error("未读取到 多语言配置");
+				return null;
+			}
+			return cfg.GetItem<string>(id);
+		}
+		// 多语言中一些很长的文本，或者需要配置控制段落的文本
+		public string[] GetSegementLanguage(int langId)
+		{
+			int seg = langId >> 10;
+			int id = langId & 0x3ff;
+			string path = Path.Combine("LanguageCN", $"CN_SEG_{seg}");
+			CfgObj cfg = GetCfgObj<string[]> (path);
+			if (cfg == null)
+			{
+				Utils.Error("未读取到 多语言配置");
+				return null;
+			}
+			return cfg.GetItem<string[]>(id);
+		}
 
 		private void CheckNotUse()
 		{
@@ -80,7 +108,7 @@ namespace KConfig
 			_checkIdx++;
 			if (_checkIdx == _checkQueue.Length) _checkIdx = 0;
 		}
-		private CfgObj LoadCfg<T>(string key, string mainKey, string path, bool notClear)
+		private CfgObj LoadCfg<T>(string key, string mainKey, string path, bool notClear, string[] languageList = null)
 		{
 			path = Path.Combine(cfgPath, path);
 			if (File.Exists(path) == false)
@@ -94,6 +122,7 @@ namespace KConfig
 				CfgObj obj = new();
 				obj.lastCheck = Time.time;
 				_cfgDic[key] = obj;
+				Type type = typeof(T);
 				if (string.IsNullOrEmpty(mainKey))
 				{
 					// 加载为 list
@@ -101,12 +130,40 @@ namespace KConfig
 					obj.data = list;
 					obj.type = CfgObj.ECFG_TYPE.List;
 					obj.count = list.Count;
+					// TO_OPTIMIZE 这里配置的是 int，然后json反序列化为了 string，再加载时再将 string转为int 然后获取多语言文本
+					if (languageList != null)
+					{
+						FieldInfo langField = null;
+
+						foreach (string lang in languageList)
+						{
+							langField = type.GetField(lang);
+							foreach (T elem in list)
+							{
+								langField.SetValue(elem, GetLanguage(int.Parse((string)langField.GetValue(elem))));
+							}
+						}
+					}
 				}
 				else
 				{
 					// 加载为 int -> T 的字典
 					T[] cfg = JsonConvert.DeserializeObject<T[]>(json);
-					FieldInfo field = typeof(T).GetField(mainKey);
+					// TO_OPTIMIZE 这里配置的是 int，然后json反序列化为了 string，再加载时再将 string转为int 然后获取多语言文本
+					if (languageList != null)
+					{
+						FieldInfo langField = null;
+
+						foreach (string lang in languageList)
+						{
+							langField = type.GetField(lang);
+							foreach (T elem in cfg)
+							{
+								langField.SetValue(elem, GetLanguage(int.Parse((string)langField.GetValue(elem))));
+							}
+						}
+					}
+					FieldInfo field = type.GetField(mainKey);
 					Type fType = field.FieldType;
 
 					if (fType == typeof(string))
@@ -128,8 +185,9 @@ namespace KConfig
 				if (notClear == false) _checkQueue[0].Enqueue((key, obj));
 				return obj;
 			}
-			catch
+			catch (Exception ex) 
 			{
+				Utils.Error(ex.Message);
 				return null;
 			}
 		}

@@ -29,6 +29,7 @@ namespace KUISys
 
 	public class UIElem : MonoBehaviour
 	{
+		public virtual void Clear() { }
 
 		public virtual void OnShow() { }
 

@@ -1,19 +1,19 @@
 [
-    {"id":10001,"name":"鲇鱼",      "quality":3,"icon":1000001,"sellPrice":450,     "desc":"春3就该钓它"},
-    {"id":10002,"name":"大嘴鱼",    "quality":2,"icon":1000002,"sellPrice":250,     "desc":"生活在森林湖泊中的鱼"},
-    {"id":10003,"name":"大头鱼",    "quality":2,"icon":1000003,"sellPrice":220,     "desc":"一年四季都能钓到"},
-    {"id":10004,"name":"鲤鱼",      "quality":1,"icon":1000004,"sellPrice":20,      "desc":"很容易钓，不值几个钱"},
-    {"id":10005,"name":"传说之鱼",  "quality":4,"icon":1000005,"sellPrice":24000,   "desc":"没错，就是24k"},
+{"id":10001,"name":0,"cat":8,"quality":3,"icon":1000001,"sellPrice":450,"desc":1},
+{"id":10002,"name":2,"cat":8,"quality":2,"icon":1000002,"sellPrice":250,"desc":3},
+{"id":10003,"name":4,"cat":8,"quality":2,"icon":1000003,"sellPrice":220,"desc":5},
+{"id":10004,"name":6,"cat":8,"quality":1,"icon":1000004,"sellPrice":20,"desc":7},
+{"id":10005,"name":8,"cat":8,"quality":4,"icon":1000005,"sellPrice":24000,"desc":9},
 
-    {"id":10006,"name":"链鱼",      "quality":2,"icon":1000006,"sellPrice":125,     "desc":"不好吃也不好钓还不值钱"},
-    {"id":10007,"name":"小嘴鲈鱼",  "quality":2,"icon":1000007,"sellPrice":120,     "desc":"一条普通的河鱼"},
-    {"id":10008,"name":"西鲱",      "quality":2,"icon":1000008,"sellPrice":175,     "desc":"雨天夜晚出现的河鱼"},
-    {"id":10009,"name":"绸鱼",      "quality":2,"icon":1000009,"sellPrice":70,     "desc":"雨天夜晚出现的河鱼"},
-    {"id":10010,"name":"太阳鱼",    "quality":1,"icon":1000010,"sellPrice":50,      "desc":"小镇上的河流里，不知道有多少"},
+{"id":10006,"name":10,"cat":8,"quality":2,"icon":1000006,"sellPrice":125,"desc":11},
+{"id":10007,"name":12,"cat":8,"quality":2,"icon":1000007,"sellPrice":120,"desc":13},
+{"id":10008,"name":14,"cat":8,"quality":2,"icon":1000008,"sellPrice":175,"desc":15},
+{"id":10009,"name":16,"cat":8,"quality":2,"icon":1000009,"sellPrice":70,"desc":15},
+{"id":10010,"name":17,"cat":8,"quality":1,"icon":1000010,"sellPrice":50,"desc":18},
 
-    {"id":10011,"name":"水滴鱼",    "quality":3,"icon":1000011,"sellPrice":110,   "desc":"生活在深海中，错过等1年"},
-    {"id":10012,"name":"深海乌贼",  "quality":2,"icon":1000012,"sellPrice":80,    "desc":"它的眼睛会发光！"},
-    {"id":10013,"name":"河豚",      "quality":3,"icon":1000013,"sellPrice":600,   "desc":"天时地利人和，不知道为什么是在海中出现"},
-    {"id":10014,"name":"传说之鱼II","quality":4,"icon":1000014,"sellPrice":18000, "desc":"据说是传说之鱼的后代，虎父无犬子"},
-    {"id":10015,"name":"大海参",    "quality":3,"icon":1000015,"sellPrice":600,   "desc":"来自大海的馈赠"}
+{"id":10011,"name":19,"cat":8,"quality":3,"icon":1000011,"sellPrice":110,"desc":20},
+{"id":10012,"name":21,"cat":8,"quality":2,"icon":1000012,"sellPrice":80,"desc":22},
+{"id":10013,"name":23,"cat":8,"quality":3,"icon":1000013,"sellPrice":600,"desc":24},
+{"id":10014,"name":25,"cat":8,"quality":4,"icon":1000014,"sellPrice":18000,"desc":26},
+{"id":10015,"name":27,"cat":8,"quality":3,"icon":1000015,"sellPrice":600,"desc":28}
 ]
