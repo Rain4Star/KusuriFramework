@@ -21,7 +21,6 @@ namespace Kusuri.GameUI
 		public Button useBtn, sellBtn, dropBtn, addBtn;
 
 		// 数据和配置
-		private CfgObj _itemCfg;
 		private List<KBagItem> _bag;
 		private int _selectIdx;
 
@@ -34,8 +33,6 @@ namespace Kusuri.GameUI
 			title.SetCloseFunc(() => UIMgr.Ins.CloseWindow<BagUI>());
 			title.SetTitle("背包[TO_CONFIG]");
 
-			_itemCfg = ConfigMgr.Ins.GetCfgObj<ItemCfg>();
-
 			_bag = ModelMgr.Ins.GetModel<UserModel>().Bag;
 			bagSv.Init
 			(
@@ -46,9 +43,9 @@ namespace Kusuri.GameUI
 					// 更新视图
 					bagItem.UpdateItem
 					(
-						_bag[idx],									// 背包物品
-						_itemCfg.GetItem<ItemCfg>(_bag[idx].Id),	// 背包物品对应的配置
-						idx											// 点击回调时的参数
+						_bag[idx],			// 背包物品
+						_bag[idx].cfg,		// 背包物品对应的配置
+						idx					// 点击回调时的参数
 					);
 					// 设置点击回调
 					bagItem.SetClickFunc(OnItemClick);
@@ -66,6 +63,8 @@ namespace Kusuri.GameUI
 			Clear();
 			_eIdBag = EventSys.Ins.AddListener("UPDATE_BAG_ALL", (_) => 
 			{
+				_bag = ModelMgr.Ins.GetModel<UserModel>().Bag;
+				Utils.Print(_bag.Count);
 				bagSv.SetDataNum(_bag.Count).Flush();
 			});
 
@@ -93,7 +92,7 @@ namespace Kusuri.GameUI
 				Clear();
 				return;
 			}
-			ItemCfg cfg = _itemCfg.GetItem<ItemCfg>(_bag[idx].Id);
+			ItemCfg cfg = _bag[idx].cfg;
 			if (cfg == null) return;
 			_selectIdx = idx;
 			catTxt.text = cfg.cat.ToString();
@@ -116,22 +115,25 @@ namespace Kusuri.GameUI
 		private void UseClick()
 		{
 			if (_selectIdx == -1) return;
-			
+			UserProcessor.CS_UpdateBagItem((KBagItem.EUseType.Use, _bag[_selectIdx].Id, 1));
 		}
 
 		private void SellClick()
 		{
 			if (_selectIdx == -1) return;
+			UserProcessor.CS_UpdateBagItem((KBagItem.EUseType.Sell, _bag[_selectIdx].Id, 1));
 		}
 
 		private void DropClick()
 		{
 			if (_selectIdx == -1) return;
+			UserProcessor.CS_UpdateBagItem((KBagItem.EUseType.Drop, _bag[_selectIdx].Id, 1));
 		}
 
 		private void AddClick()
 		{
 			if (_selectIdx == -1) return;
+			UserProcessor.CS_UpdateBagItem((KBagItem.EUseType.Add, _bag[_selectIdx].Id, 5));
 		}
 	}
 }

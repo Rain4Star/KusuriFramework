@@ -1,35 +1,42 @@
-﻿using System;
+﻿using KConfig;
 using Newtonsoft.Json;
 
 namespace KModel
 {
+	public enum EBagSortType
+	{
+		
+	}
+
+	public enum EBagSelectType
+	{
+		Id,
+		Name,
+		Quality,
+		Cat,
+	}
+
 	public class BagItem
 	{
+		public enum EUseType
+		{
+			Set = 0,
+			Add = 1,
+			Drop = 2,
+			Sell = 3,
+			Use = 4
+		}
+
 		// id, cnt
 		[JsonRequired]
 		private int[] data;
-		public int Quality { get; private set; }
-		public int Catgory { get; private set; }
 
-		public override bool Equals(object? obj)
-		{
-			if (obj is BagItem other)
-			{
-				return other.Id == this.Id;
-			}
-			return false;
-		}
+		[JsonIgnore]
+		public ItemCfg cfg;
 
-		public override int GetHashCode()
+		public BagItem()
 		{
-			return MakeHashCode(Id);
-		}
-
-		public static int MakeHashCode(int id)
-		{
-			HashCode res = new();
-			res.Add(id);
-			return res.ToHashCode();
+			data = new int[2];
 		}
 
 		public BagItem(int id, int count)
@@ -53,17 +60,45 @@ namespace KModel
 			protected set { data[1] = value; }
 		}
 
-		public virtual void Use(int useType, int cnt)
+		public virtual void Set(int cnt)
 		{
-
+			Count = cnt;
 		}
 
-		public virtual void Update(int opType, int cnt)
+		public virtual void Add(int cnt)
+		{
+			Count += cnt;
+		}
+
+		public virtual void Sell(int cnt)
+		{
+			Count -= cnt;
+		}
+
+		public virtual void Drop(int cnt)
+		{
+			Count -= cnt;
+		}
+
+		public virtual void Use(int cnt)
+		{
+			Count -= cnt;
+		}
+
+		public virtual void Update(EUseType opType, int cnt)
 		{
 			switch (opType)
 			{
-				case 0:     // 设置数量
-					Count = cnt; break;
+				case EUseType.Set:
+					Set(cnt); break;
+				case EUseType.Add:
+					Add(cnt); break;
+				case EUseType.Drop:
+					Drop(cnt); break;
+				case EUseType.Sell:
+					Sell(cnt); break;
+				case EUseType.Use:
+					Use(cnt); break;
 			}
 		}
 	}

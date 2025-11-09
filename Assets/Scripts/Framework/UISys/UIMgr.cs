@@ -1,3 +1,4 @@
+using KConfig;
 using KEventSys;
 using Kusuri;
 using System;
@@ -116,8 +117,10 @@ namespace KUISys
 			elem.GetComponentsInChildren<Text>(true, _multiLanguageText);
 			foreach (var txt in _multiLanguageText)
 			{
-				string lang = txt.text;
-				if (string.IsNullOrEmpty(lang)) continue;
+				if (int.TryParse(txt.text, out int id))
+				{
+					txt.text = ConfigMgr.Ins.GetLanguage(id);
+				}
 			}
 		}
 

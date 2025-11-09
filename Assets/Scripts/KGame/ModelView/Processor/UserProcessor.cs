@@ -14,7 +14,9 @@ namespace KModel
 			AddProcFunc(3, (CmdFunc<long>)SC_TestAlive);
 			AddProcFunc(4, (CmdFunc<int[]>)SC_SetTestAliveParam);
 			AddProcFunc(5, (CmdFunc<BagItem[]>)SC_SendBag);
-			AddProcFunc(6, (CmdFunc<(int opType, (int id, int opCnt)[] items)>)SC_UpdateBagItems);
+			AddProcFunc(6, (CmdFunc<(BagItem.EUseType opType, (int id, int opCnt)[] items)>)SC_UpdateBagItems);
+			AddProcFunc(7, (CmdFunc<(BagItem.EUseType opType, int id, int opCnt)>)SC_UpdateBagItem);
+
 		}
 
 		// 1-1 CS 创建用户
@@ -78,26 +80,26 @@ namespace KModel
 
 
 		// 1-6 SC 更新多个背包物品
-		private void SC_UpdateBagItems((int opType, (int id, int opCnt)[] items) data)
+		private void SC_UpdateBagItems((BagItem.EUseType opType, (int id, int opCnt)[] items) data)
 		{
-
+			ModelMgr.Ins.GetModel<UserModel>().SC_UpdateItems(data.opType, data.items);
 		}
 		// 1-6 CS 请求批处理多个背包物品
-		public static void CS_UpdateBagItems(int opType, (int id, int opCnt)[] items)
+		public static void CS_UpdateBagItems(BagItem.EUseType opType, (int id, int opCnt)[] items)
 		{
-
+			GameClient.Ins.SendMesg(1, 6, JsonConvert.SerializeObject(items));
 		}
 
 
 		// 1-7 SC 更新一个背包物品
-		private void SC_UpdateBagItem((int opType, int id, int opCnt) data)
+		private void SC_UpdateBagItem((BagItem.EUseType opType, int id, int opCnt) data)
 		{
-
+			ModelMgr.Ins.GetModel<UserModel>().SC_UpdateItem(data.opType, data.id, data.opCnt);
 		}
 		// 1-7 CS 请求更新一个背包物品
-		public static void CS_UpdateBagItem(int opType, (int id, int opCnt) item)
+		public static void CS_UpdateBagItem((BagItem.EUseType opType, int id, int opCnt) item)
 		{
-
+			GameClient.Ins.SendMesg(1, 7, JsonConvert.SerializeObject(item));
 		}
 	}
 }

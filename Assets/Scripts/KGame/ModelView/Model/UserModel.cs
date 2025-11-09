@@ -1,6 +1,6 @@
-﻿using KEventSys;
+﻿using KConfig;
+using KEventSys;
 using KGameClient;
-using Kusuri;
 using System;
 using System.Collections.Generic;
 
@@ -16,13 +16,25 @@ namespace KModel
 		private long _reconnectInterval = 15;
 		private bool _testAliveFlag = false;
 
+		private CfgObj _itemCfg;
 		public User CurUser { get; private set; }
 
-		public List<BagItem> Bag { get; private set; } = new();
+		public List<BagItem> Bag 
+		{
+			get 
+			{
+				if (_bagDicChanged) SortBag();
+				return _sortBag;
+			}
+		}
+		private List<BagItem> _sortBag = new();
+		private bool _bagDicChanged = false;
+		public Dictionary<int, BagItem> BagDic { get; private set; } = new();
 
 		public override void Init(ModelMgr ins)
 		{
 			ins.onUpdate += Update;
+			_itemCfg = ConfigMgr.Ins.GetCfgObj<ItemCfg>();
 		}
 
 		public void Update()
@@ -99,22 +111,70 @@ namespace KModel
 
 
 		#region 背包模块
-		// SC 1-6 下发用户背包数据
+		private void SortBag()
+		{
+			_sortBag.Clear();
+			foreach (BagItem item in BagDic.Values)
+			{
+				_sortBag.Add(item);
+			}
+			_sortBag.Sort((a, b) => a.Id.CompareTo(b.Id));
+			_bagDicChanged = false;
+		}
+
+
+		// SC 1-5 下发用户背包数据
 		public void SC_SendBag(BagItem[] bag)
 		{
-			Bag.Clear();
+			BagDic.Clear();
 			if(bag != null)
 			{
+				BagDic.EnsureCapacity(bag.Length);
 				foreach (BagItem item in bag)
 				{
-					Bag.Add(item);
+					if (item.cfg == null) item.cfg = _itemCfg.GetItem<ItemCfg>(item.Id);
+					BagDic.Add(item.Id, item);
 				}
 			}
-			Bag.Sort((a, b) =>
-			{ 
-				return a.Id.CompareTo(b.Id);
-			});
+			_bagDicChanged = true;
 			EventSys.Ins.Send("UPDATE_BAG_ALL");
+		}
+
+
+		private void InnerUpdateItem(BagItem.EUseType opType, int id, int opCnt)
+		{
+			if (opCnt < 0) return;      // opCnt 为符数时，是一些出错情况，并不是某种操作的反操作
+			if (BagDic.TryGetValue(id, out var item) == false)
+			{
+				item = new BagItem(id, 0);
+				item.cfg = _itemCfg.GetItem<ItemCfg>(item.Id);
+				BagDic.Add(id, item);
+				_bagDicChanged = true;
+			}
+			item.Update(opType, opCnt);
+			// 更新后数量为 0，移除这个物品
+			if (item.Count == 0)
+			{
+				BagDic.Remove(id);
+				_bagDicChanged = true;
+			}
+		}
+
+		// SC 1-6 下发更新
+		public void SC_UpdateItems(BagItem.EUseType opType, (int id, int opCnt)[] items)
+		{
+			foreach (var item in items)
+			{
+				InnerUpdateItem(opType, item.id, item.opCnt);
+			}
+			EventSys.Ins.Send("UPDATE_BAG_ALL");
+		}
+
+		// SC 1-7 下发更新单个物品
+		public void SC_UpdateItem(BagItem.EUseType opType, int id, int opCnt)
+		{
+			InnerUpdateItem(opType, id, opCnt);
+			EventSys.Ins.Send("UPDATE_BAG_ITEM", id);
 		}
 
 

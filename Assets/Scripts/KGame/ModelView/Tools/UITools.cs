@@ -10,7 +10,6 @@ namespace Kusuri.GameUI
 		public static void Init()
 		{
 			iconCfg = ConfigMgr.Ins.GetCfgObj<IconCfg>();
-			Utils.Print(iconCfg.data);
 		}
 
 		public static Sprite LoadSprite(int iconId)

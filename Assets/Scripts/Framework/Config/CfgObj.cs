@@ -17,10 +17,12 @@ namespace KConfig
 		};
 
 		public float lastCheck;
-		public object data;
 		public uint visit;
-		public int count;
+		public bool CanRemove;
 
+		public object data;
+		public int count;
+		
 		public ECFG_TYPE type = ECFG_TYPE.None;
 
 		public T GetItem<T>(int id)

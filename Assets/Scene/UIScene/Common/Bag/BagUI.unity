@@ -3134,6 +3134,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2081894961}
   - component: {fileID: 2081894962}
+  - component: {fileID: 2081894963}
   m_Layer: 5
   m_Name: Prefab
   m_TagString: Untagged
@@ -3185,6 +3186,18 @@ MonoBehaviour:
   sellBtn: {fileID: 884099130}
   dropBtn: {fileID: 1115411916}
   addBtn: {fileID: 283662425}
+--- !u!114 &2081894963
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2081894960}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01a85e00703591a46bc72abbcd5ffab1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

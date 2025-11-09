@@ -33,7 +33,13 @@ namespace KConfig
 			InvokeRepeating("CheckNotUse", 600, 600);       // 10 分钟检测一波
 		}
 
-		// T 带有 CfgItem 注解时，可以调用
+		/// <summary>
+		/// T 带有 CfgItem 注解时，可以调用，
+		/// 对于参与代际回收的配置，不建议持有 CfgObj 引用
+		/// 要持有时，请在 OnEnable 中持有，在 OnDisable 中置空
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <returns></returns>
 		public CfgObj GetCfgObj<T>()
 		{
 			Type type = typeof(T);
@@ -43,71 +49,39 @@ namespace KConfig
 			if (att == null) return null;
 			return LoadCfg<T>(type.Name, att.mainKey, att.resPath, att.notClear, att.languageList);
 		}
-		// T 没有 CfgItem 注解时，可以调用
+
+		/// <summary>
+		/// T 没有 CfgItem 注解时，可以调用，
+		/// 对于参与代际回收的配置，不建议持有 CfgObj 引用,
+		/// 要持有时，请在 OnEnable 中持有，在 OnDisable 中置空
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="path"></param>
+		/// <param name="mainKey"></param>
+		/// <param name="notClear"></param>
+		/// <param name="languageList"></param>
+		/// <returns></returns>
 		public CfgObj GetCfgObj<T>(string path, string mainKey = null, bool notClear = false, string[] languageList = null)
 		{
 			if (_cfgDic.TryGetValue(path, out var obj)) return obj;
 			return LoadCfg<T>(path, mainKey, path, notClear, languageList);
 		}
 
-		// 多语言文本
-		public string GetLanguage(int langId)
+		/// <summary>
+		/// 获取一个配置项
+		/// </summary>
+		/// <typeparam name="T"></typeparam>
+		/// <param name="id"></param>
+		/// <returns></returns>
+		public T GetCfgItem<T>(int id)
 		{
-			int seg = langId >> 10;
-			int id = langId & 0x3ff;
-			// TODO: 这里还要获取对应的语言所在的文件夹
-			string path = Path.Combine("LanguageCN", $"CN_{seg}");
-			CfgObj cfg = GetCfgObj<string>(path);
-			if (cfg == null)
-			{
-				Utils.Error("未读取到 多语言配置");
-				return null;
-			}
-			return cfg.GetItem<string>(id);
+			return GetCfgObj<T>().GetItem<T>(id);
 		}
-		// 多语言中一些很长的文本，或者需要配置控制段落的文本
-		public string[] GetSegementLanguage(int langId)
+		public T GetCfgItem<T>(string key)
 		{
-			int seg = langId >> 10;
-			int id = langId & 0x3ff;
-			string path = Path.Combine("LanguageCN", $"CN_SEG_{seg}");
-			CfgObj cfg = GetCfgObj<string[]> (path);
-			if (cfg == null)
-			{
-				Utils.Error("未读取到 多语言配置");
-				return null;
-			}
-			return cfg.GetItem<string[]>(id);
+			return GetCfgObj<T>().GetItem<T>(key);
 		}
 
-		private void CheckNotUse()
-		{
-			for (int i = 0; i <= _checkIdx; i++)
-			{
-				var queue = _checkQueue[i];
-				int cnt = queue.Count;
-				int lim = 32 << i;
-				float time = Time.time;
-				while (cnt > 0)
-				{
-					cnt--;
-					var (key, cfgDic) = queue.Dequeue();
-					// 访问数够多或者是近期建立的
-					if (cfgDic.visit > lim || time - cfgDic.lastCheck < 480.0f)
-					{
-						cfgDic.lastCheck = time;
-						cfgDic.visit = 0;
-						queue.Enqueue((key, cfgDic));
-						continue;
-					}
-					// 从字典中移除
-					_cfgDic.Remove(key);
-					Utils.Print($"Rmove config {key}");
-				}
-			}
-			_checkIdx++;
-			if (_checkIdx == _checkQueue.Length) _checkIdx = 0;
-		}
 		private CfgObj LoadCfg<T>(string key, string mainKey, string path, bool notClear, string[] languageList = null)
 		{
 			path = Path.Combine(cfgPath, path);
@@ -185,11 +159,81 @@ namespace KConfig
 				if (notClear == false) _checkQueue[0].Enqueue((key, obj));
 				return obj;
 			}
-			catch (Exception ex) 
+			catch (Exception ex)
 			{
 				Utils.Error(ex.Message);
 				return null;
 			}
 		}
+
+		// 多语言文本
+		public string GetLanguage(int langId)
+		{
+			int seg = langId >> 10;
+			int id = langId & 0x3ff;
+			// TODO: 这里还要获取对应的语言所在的文件夹
+			string path = Path.Combine("LanguageCN", $"CN_{seg}");
+			CfgObj cfg = GetCfgObj<string>(path);
+			if (cfg == null)
+			{
+				Utils.Error("未读取到 多语言配置");
+				return null;
+			}
+			return cfg.GetItem<string>(id);
+		}
+		// 多语言中一些很长的文本，或者需要配置控制段落的文本
+		public string[] GetSegementLanguage(int langId)
+		{
+			int seg = langId >> 10;
+			int id = langId & 0x3ff;
+			string path = Path.Combine("LanguageCN", $"CN_SEG_{seg}");
+			CfgObj cfg = GetCfgObj<string[]> (path);
+			if (cfg == null)
+			{
+				Utils.Error("未读取到 多语言配置");
+				return null;
+			}
+			return cfg.GetItem<string[]>(id);
+		}
+
+		private void CheckNotUse()
+		{
+			for (int i = 0; i <= _checkIdx; i++)
+			{
+				var queue = _checkQueue[i];
+				var nexQueue = i < _checkQueue.Length - 1 ? _checkQueue[i + 1] : queue;
+				int cnt = queue.Count;
+				int lim = 32 << i;
+				float time = Time.time;
+				while (cnt > 0)
+				{
+					cnt--;
+					var (key, cfgDic) = queue.Dequeue();
+					// 访问数够多或者是近期建立的
+					if (cfgDic.visit > lim || time - cfgDic.lastCheck < 480.0f)
+					{
+						cfgDic.lastCheck = time;
+						cfgDic.visit = 0;
+						cfgDic.CanRemove = false;
+						nexQueue.Enqueue((key, cfgDic));
+						continue;
+					}
+					if (cfgDic.CanRemove == false)
+					{
+						cfgDic.CanRemove = true;
+						queue.Enqueue((key, cfgDic));
+					}
+					else
+					{
+						// 从字典中移除
+						_cfgDic.Remove(key);
+						Utils.Print($"Rmove config {key}");
+					}
+				}
+			}
+			_checkIdx++;
+			if (_checkIdx == _checkQueue.Length) _checkIdx = 0;
+		}
+		
 	}
 }
