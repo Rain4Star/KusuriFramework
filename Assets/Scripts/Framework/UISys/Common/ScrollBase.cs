@@ -91,8 +91,9 @@ namespace KUISys
 			return this;
 		}
 
-		public ScrollBase Flush()
+		public ScrollBase Flush(bool clear = false)
 		{
+			if (clear) HideAll();
 			MakeContent();
 			return this;
 		}
@@ -132,6 +133,16 @@ namespace KUISys
 			_showDic.Remove(idx);
 			go.gameObject.SetActive(false);
 			_itemPool.Enqueue(go);
+		}
+
+		public void HideAll()
+		{
+			foreach (var item in _showDic.Values)
+			{
+				item.gameObject.SetActive(false);
+				_itemPool.Enqueue(item);
+			}
+			_showDic.Clear();
 		}
 
 		protected void OnDragging(Vector2 scrollPos)

@@ -64,8 +64,7 @@ namespace Kusuri.GameUI
 			_eIdBag = EventSys.Ins.AddListener("UPDATE_BAG_ALL", (_) => 
 			{
 				_bag = ModelMgr.Ins.GetModel<UserModel>().Bag;
-				Utils.Print(_bag.Count);
-				bagSv.SetDataNum(_bag.Count).Flush();
+				bagSv.SetDataNum(_bag.Count).Flush(true);
 			});
 
 			useBtn.onClick.AddListener(UseClick);
